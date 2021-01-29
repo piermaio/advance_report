@@ -1,0 +1,27 @@
+affine==2.3.0
+attrs==19.3.0
+certifi==2020.6.20
+click==7.1.2
+click-plugins==1.1.1
+cligj==0.5.0
+cycler==0.10.0
+descartes==1.1.0
+Fiona @ file:///C:/Users/piermaio/Documents/gisdata/jrc/BAmapping/geopandas/Fiona-1.8.13-cp38-cp38-win_amd64.whl
+GDAL @ file:///C:/Users/piermaio/Documents/gisdata/jrc/BAmapping/geopandas/GDAL-3.1.2-cp38-cp38-win_amd64.whl
+geopandas @ file:///C:/Users/piermaio/Documents/gisdata/jrc/BAmapping/geopandas/geopandas-0.8.1-py3-none-any.whl
+kiwisolver==1.2.0
+matplotlib==3.3.2
+munch==2.5.0
+numpy==1.19.1
+pandas==1.1.0
+Pillow==7.2.0
+pyparsing==2.4.7
+pyproj @ file:///C:/Users/piermaio/Documents/gisdata/jrc/BAmapping/geopandas/pyproj-2.6.1.post1-cp38-cp38-win_amd64.whl
+python-dateutil==2.8.1
+pytz==2020.1
+rasterio @ file:///C:/Users/piermaio/PycharmProjects/jrc/geopandas/rasterio-1.1.5-cp38-cp38-win_amd64.whl
+rasterstats==0.15.0
+Shapely @ file:///C:/Users/piermaio/Documents/gisdata/jrc/BAmapping/geopandas/Shapely-1.7.0-cp38-cp38-win_amd64.whl
+simplejson==3.17.2
+six==1.15.0
+snuggs==1.4.7
