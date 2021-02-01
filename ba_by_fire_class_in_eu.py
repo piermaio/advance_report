@@ -19,3 +19,10 @@ def sum_count(path):
     df = df.merge(df_nations, how='inner', left_on='COUNTRY', right_on='NUTS0_CODE')
     print('\n --- Count of burnt areas per EU, nonEU, ME_NA --- \n')
     print(df.columns)
+    df_eu = df.loc[df['EU_nonEU'] == 'EU']
+    cut_labels = ['>=50 ha but <100', '>=100 and <500 ha', '>=500 and <1000 ha', '>=1000 ha']
+    cut_bins = [50, 100, 500, 1000, 1000000000]
+    df_eu['bin'] = pd.cut(df_eu['AREA_HA'], bins=cut_bins, labels=cut_labels)
+    df_eu.to_csv('df_eu.csv')
+    groups = df_eu.groupby(['NUTS_NAME', 'bin']).agg({'AREA_HA': ['sum', 'count']})
+    groups.to_csv('4_ba_by_fire_size_class_in_eu.csv')

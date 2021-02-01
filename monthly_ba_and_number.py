@@ -17,6 +17,6 @@ def month_sum_count(path):
     df = df.merge(df_nations, how='inner', left_on='COUNTRY', right_on='NUTS0_CODE')
     df.to_csv('temp')
     df2 = df.groupby(['NUTS_NAME', 'month']).agg({'AREA_HA': ['sum', 'count']})
-    df2.to_csv('2_monthly_ba_and_number_fires.csv')
+    df2.to_csv('3_monthly_ba_and_number_fires.csv')
     # print(type(df['FIREDATE'][0]))
     print(df2)
