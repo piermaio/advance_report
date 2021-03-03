@@ -1,0 +1,62 @@
+select ba.id, ba.COUNTRY, ba.AREA_HA, clc.natura2k*ba.AREA_HA as tot_nat2k_ha from gw_burntarea_effis.ba_oracle_export_year as ba,
+gw_burntarea_effis.ba_stats_clc as clc where ba.id=clc.ba_id and ba.initialdate>='2020-01-01' and \
+                                                   ba.initialdate<'2021-01-01' and clc.natura2k is not null;
+
+
+select geom into natura2k_geom from rst.nat2000_end2010_mena where st_intersects(geom, st_transform(new.geom, 3035));
+      if natura2k_geom is not null then
+          select st_area(st_intersection(new.geom, ST_MakeValid(natura2k_geom)))/st_area(new.geom) into natura2k;
+      end if;
+
+
+select new.id, new.initialdate, *, natura2k from gw_burntarea_effis.get_corine_class(new.id);
+
+
+SELECT COLUMN_NAME AS ColumnName, TABLE_NAME AS TableName FROM INFORMATION_SCHEMA.COLUMNS where COLUMN_NAME like '%sitecode%' order by TableName, ColumnName;
+
+
+SELECT t."COUNTRY", sum(t."AREA_HA"*t."PERCNA2K")/100 as area, count(t."PERCNA2K")
+FROM gw_burntarea_effis.ba_oracle_compat_year as t
+where t."AREA_HA">=30 and t."PERCNA2K"!=0
+group by t."COUNTRY" order by t."COUNTRY"
+
+
+select t."ms", sum(t."area_ha") from rst.nat2000_end2010_mena as t
+group by t."ms"
+order by t."ms"
+
+
+-- 9.	NATURA2000-CORINE land use/cover statistics by country
+
+SELECT t."COUNTRY",
+sum(t."AREA_HA"*t."PERCNA2K"/100*t."BROADLEA"/100) as BroadLeavedForest,
+sum(t."AREA_HA"*t."PERCNA2K"/100*t."CONIFER"/100) as ConiferousForest,
+sum(t."AREA_HA"*t."PERCNA2K"/100*t."MIXED"/100) as MixedForest,
+sum(t."AREA_HA"*t."PERCNA2K"/100*t."SCLEROPH"/100) as SclerophyllousVeget,
+sum(t."AREA_HA"*t."PERCNA2K"/100*t."TRANSIT"/100) as TransitionalVeget,
+sum(t."AREA_HA"*t."PERCNA2K"/100*t."OTHERNATLC"/100) as OtherNaturalLand,
+sum(t."AREA_HA"*t."PERCNA2K"/100*t."AGRIAREAS"/100) as Agriculture,
+sum(t."AREA_HA"*t."PERCNA2K"/100*t."ARTIFSURF"/100) as ArtificialSurfaces,
+sum(t."AREA_HA"*t."PERCNA2K"/100*t."OTHERLC"/100) as OtherLandCover,
+FROM gw_burntarea_effis.ba_oracle_compat_year as t
+where t."AREA_HA">=30 and t."PERCNA2K"!=0
+group by t."COUNTRY" order by t."COUNTRY"
+
+
+-- 10.	NATURA 2000 sites list by country
+-- Alfredo
+select geom into natura2k_geom from rst.nat2000_end2010_mena where st_intersects(geom, st_transform(new.geom, 3035));
+if natura2k_geom is not null then
+select st_area(st_intersection(new.geom, ST_MakeValid(natura2k_geom)))/st_area(new.geom) into natura2k;
+end if;
+select new.id, new.initialdate, sum(t."AREA_HA"*t."PERCNA2K")/100 as area from gw_burntarea_effis.get_corine_class(new.id);
+
+
+-- 10.	NATURA 2000 sites list by country
+-- ho bisogno di country, sitecode, sitename, sitetype, typeofarea, area_ha (della porzione bruciata)
+
+SELECT ba."COUNTRY", t."sitecode", t."sitename", t."sitetype", (ba."AREA_HA"*ba."PERCNA2K")/100
+FROM rst.nat2000_end2010_mena as t
+JOIN gw_burntarea_effis.ba_oracle_compat_year as ba
+ON ST_Contains(t."geom", ba."geom")
+where ba."AREA_HA">=30 and ba."PERCNA2K"!=0

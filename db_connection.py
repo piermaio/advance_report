@@ -41,9 +41,10 @@ def db_connection(table_name, use='r', statement=''):
 		# global df_sql
 		# df_sql = pd.read_sql_query('select * from gw_burntarea_effis.ba_oracle_export_year', con = engine)
 		# print("dataframe df_sql from ba_oracle_export_year successfully downloaded")
-		# global gdf_sql
-		# gdf_sql = gpd.read_postgis('select * from gw_burntarea_effis.ba_oracle_export_year', con=engine)
-		# print("geodataframe gdf_sql from ba_oracle_export_year successfully downloaded")
+		global gdf_sql
+		print('Downloading the geodataframe from {} \n'.format(table_name))
+		gdf_sql = gpd.read_postgis('select * {}'.format(table_name), con=engine)
+		print("geodataframe gdf_sql from ba_oracle_export_year successfully downloaded")
 		# global gdf_ba
 		# gdf_ba = gpd.read_postgis('select * from gw_burntarea_effis.ba_year', con=engine)
 		# print("geodataframe gdf_ba from ba_year successfully downloaded")
@@ -67,14 +68,24 @@ def db_connection(table_name, use='r', statement=''):
 		global tab_nations  # Table associating the
 		tab_nations = pd.read_sql_query('select * from "burnt_areas"."Tab_Elenco_Nazioni"', con=engine)
 		print("tab_nations successfully downloaded")
+		print('Generating nat2k year stats\n')
 		nat2k_year = pd.read_sql_query('select sum(clc.natura2k*ba.area_ha) as '
 									   'tot_nat2k_ha from gw_burntarea_effis.ba_final as ba, '
 									   'gw_burntarea_effis.ba_stats_clc as clc where ba.id=clc.ba_id and '
-									   'ba.initialdate>=\'2020-01-01\' and clc.natura2k is not null;', con=engine)
+									   'ba.initialdate>=\'2020-01-01\' and ba.initialdate<\'2021-01-01\' and clc.natura2k is not null;', con=engine)
+		print('Generating nat2k week stats\n')
 		nat2kweek = pd.read_sql_query('select sum(clc.natura2k*ba.area_ha) as tot_nat2k_ha from '
 									  'gw_burntarea_effis.ba_final as ba, gw_burntarea_effis.ba_stats_clc '
 									  'as clc where ba.id=clc.ba_id and ba.initialdate>=(now()-interval \'7 days\')::date '
 									  'and clc.natura2k is not null;', con=engine)
+		print('Generating nat2k by country stats\n')
+		nat2k_by_country = pd.read_sql_query('SELECT t."COUNTRY", sum(t."AREA_HA"*t."PERCNA2K"), count(t."PERCNA2K")' 
+											 'FROM gw_burntarea_effis.ba_oracle_compat_year as t'
+											 'where t."AREA_HA">=30 and t."PERCNA2K"!=0'
+											 'group by t."COUNTRY" order by t."COUNTRY" ')
+		nat2k_areas = pd.read_sql_query('select t."ms", sum(t."area_ha") from rst.nat2000_end2010_mena as t'
+										'group by t."ms"'
+										'order by t."ms"')
 	except (Exception, psycopg2.Error) as error:
 		print("Error while connecting to PostgreSQL", error)
 	finally:
@@ -84,7 +95,7 @@ def db_connection(table_name, use='r', statement=''):
 			connection.close()
 			print("PostgreSQL connection now closed")
 	if use == 'r':
-		return df_sql, nat2k_year, nat2kweek, tab_nations
+		return df_sql, gdf_sql, nat2k_year, nat2kweek, tab_nations, nat2k_by_country, nat2k_areas
 	else:
-		print('daffuck!')
+		print('Ahia!')
 	# return gdf_evo

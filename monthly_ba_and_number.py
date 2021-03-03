@@ -5,7 +5,7 @@ import pandas as pd
 table_name = 'gw_burntarea_effis.ba_oracle_export_year'
 
 def month_sum_count(path):
-    df_sql, nat2k_year, nat2kweek, df_nations = db_connection.db_connection(table_name)
+    df_sql, gdf_sql, nat2k_year, nat2kweek, df_nations = db_connection.db_connection(table_name)
     os.chdir(path)
     df = df_sql
     df['AREA_HA'] = df['AREA_HA'].astype(int)
