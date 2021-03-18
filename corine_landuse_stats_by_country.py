@@ -9,8 +9,7 @@ import geopandas as gpd
 import csv
 
 
-
-def corine_stats(root, ba_ref, burnt_areas, corine_path):
+def corine_stats(ba_ref, burnt_areas, corine_path):
     # dict_path = 'C:\\Users\\piermaio\\Documents\\gisdata\\jrc\\advance_report'  # PM local path to the corine key
     countries_dict = {
         'AL': 'Albania', 'DZ': 'Algeria', 'AM': 'Armenia', 'AT': 'Austria', 'AZ': 'Azerbaijan', 'BE': 'Belgium',
@@ -26,15 +25,14 @@ def corine_stats(root, ba_ref, burnt_areas, corine_path):
         'KS': 'Kosovo under UNSCR 1244', 'GG': 'GUERNSEY', 'MT': 'Malta', 'PS': 'Palestinian Territory',
         'AD': 'Andorra', 'MK': 'North Macedonia', 'UA': 'Ukraine', 'EL': 'Greece'
     }
-    os.chdir(root)
-    print(ba_ref)
+    # print(ba_ref)
     ba = burnt_areas
     # print(ba['AREA_HA'].head())
     # ba = ba.merge(tab_nations, how='inner', left_on='COUNTRY', right_on='NUTS0_CODE')
     # print('--- Coulmns of burnt areas ---')
     # print(ba.columns)
     # ba = ba.sort_values('id')
-    ba.to_csv('corine_ba.csv')
+    # ba.to_csv('corine_ba.csv')
     # ba = ba.reset_index()
     # ba =ba.set_index('id')
     f = csv.reader(open('corine_key.csv'))
@@ -48,10 +46,10 @@ def corine_stats(root, ba_ref, burnt_areas, corine_path):
     df_ba_raw = df_ba_raw.rename(columns=corine_dict)
     df_ba_raw = df_ba_raw.T
     # print(df_ba_raw.columns)
-    df_ba_raw.to_csv('corine_ba_raw.csv')
+    # df_ba_raw.to_csv('corine_ba_raw.csv')
     df_mapped = df_ba_raw.groupby(df_ba_raw.index).sum()
     df_mapped = df_mapped.T
-    df_mapped.to_csv('corine_ba_raw2.csv')
+    # df_mapped.to_csv('corine_ba_raw2.csv')
     # df = df_ba_raw.groupby(df_ba_raw[[])['AREA_HA'].sum()
     # df.to_cs
     df = df_mapped
@@ -68,13 +66,13 @@ def corine_stats(root, ba_ref, burnt_areas, corine_path):
     df_group = df_merge.groupby([
         'COUNTRY']).sum()
     # df_group.to_csv('__test_group.csv')
-    print('\n----- df group columns\n')
-    print(df_group.columns)
+    # print('\n----- df group columns\n')
+    # print(df_group.columns)
     df_group = df_group.drop([0, 'id', 'area'], axis=1)
     df_group = df_group.reset_index()
     df_plt = df_group.copy()
-    print('\n----- df plt columns\n')
-    print(df_plt.columns)
+    # print('\n----- df plt columns\n')
+    # print(df_plt.columns)
     # df_plt = df_group.drop(['COUNTRYFUL'], axis=1)
     df_tab = df_group.copy()
     # df_tab.drop(['COUNTRYFUL'], axis=1)
@@ -84,17 +82,18 @@ def corine_stats(root, ba_ref, burnt_areas, corine_path):
     df_perc["total"] = df_perc.sum(axis=1)
     df_perc = df_perc.set_index('COUNTRY')
     list_columns = [x for x in df_perc.columns]
-    print(list_columns)
+    # print(list_columns)
     df_perc.loc[:, list_columns] = df_perc.loc[:, list_columns].div(df_perc["total"], axis=0)
-    df_perc.to_csv('_test.csv')
+    # df_perc.to_csv('_test.csv')
     # print(ba_ref.columns)
     l = tuple(list((ba_ref['AREA_HA']['sum'])))
-    print(len(l))
-    print(df_perc.shape)
+    # print(len(l))
+    # print(df_perc.shape)
     perc_columns = [x for x in df_perc.columns]
     for i in perc_columns:
         df_perc[i] = df_perc[i].multiply(l)
     df_tab_corrected = df_perc
+    df_tab_corine = df_tab_corrected.copy()
     # df_tab_corrected.to_csv('7b_landcover_by_country_area.csv')
     # df_tab.to_csv('_test.csv')
     df_countries = pd.DataFrame.from_dict(countries_dict, orient='index')
@@ -109,4 +108,11 @@ def corine_stats(root, ba_ref, burnt_areas, corine_path):
     plot = df_plt.plot.bar(stacked=True, title='Land cover classes affected by burnt areas (ha)\n', figsize=[15,10], colormap='Set2')
     fig = plot.get_figure()
     fig.savefig('8_corine_by_countries.png')
-    return df_tab_corrected
+    return df_tab_corine
+
+def main(ba_ref, burnt_areas, corine_path):
+    df_tab_corine = corine_stats(ba_ref, burnt_areas, corine_path)
+    return df_tab_corine
+
+if __name__ == '__main__':
+    main()

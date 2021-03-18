@@ -1,5 +1,5 @@
-import db_connection
 import os
+import db_connection
 import pandas as pd
 import numpy as np
 import datetime as dt
@@ -52,7 +52,7 @@ def text_plotter(x_data, y_data, text_positions, axis, txt_width, txt_height):
                        zorder=0, length_includes_head=True)
 
 
-def labeled_graphs(path, df_cumulative, title, png_name):
+def labeled_graphs(df_cumulative, title, png_name):
     print('Plotting marked and labeled graphs')
     font = {'family': 'serif',
             'color': 'black',
@@ -97,12 +97,12 @@ def labeled_graphs(path, df_cumulative, title, png_name):
     text_plotter(x_data, y_data, text_positions, plt, txt_width, txt_height)
     # end of labeling
     plt.savefig(png_name)
-    im = Image.open(path + png_name)
+    # im = Image.open(png_name)
     # im.show()
     plt.clf()
 
 
-def unlabeled_graphs(path, df_comparison, title, png_name, ylabel):
+def unlabeled_graphs(df_comparison, title, png_name, ylabel):
     print('Plotting unlabeled graphs')
     plt.clf()
     ylabel = ylabel
@@ -123,14 +123,13 @@ def unlabeled_graphs(path, df_comparison, title, png_name, ylabel):
     plt.grid(color='grey', linestyle='-', linewidth=1)
     plt.savefig(png_name)
     from PIL import Image
-    im = Image.open(path + png_name)
+    # im = Image.open(png_name)
     # im.show()
     plt.clf()
 
 
-def sum_count(path, df_sql, df_nations):
+def sum_count(df_sql, df_nations):
     # df_sql, gdf_sql, nat2k_year, nat2kweek, df_nations = db_connection.db_connection(table_name)
-    os.chdir(path)
     df = df_sql
     df['AREA_HA'] = df['AREA_HA'].astype(int)
     # Conversions from string to date format
@@ -179,7 +178,7 @@ def sum_count(path, df_sql, df_nations):
     print('Now plotting 2020 burnt area in EU countries')
     title = '2020 burnt area in EU countries'
     png_name = '6a_weekly_evolution.png'
-    labeled_graphs(path, df_cumulative, title, png_name)
+    labeled_graphs(df_cumulative, title, png_name)
 
     # Burnt areas weekly evolution in non EU during the year
     df_area = pd.DataFrame(
@@ -201,7 +200,7 @@ def sum_count(path, df_sql, df_nations):
     title = '2020 burnt area in non EU countries'
     png_name = '6b_weekly_evolution.png'
     # print(df_cumulative)
-    labeled_graphs(path, df_cumulative, title, png_name)
+    labeled_graphs(df_cumulative, title, png_name)
 
     # Cumulative burnt area in EU, weekly evolution and comparison with historical data
     df_history_eu = df_history.loc[df_history['EU_nonEU'] == 'EU']
@@ -244,7 +243,7 @@ def sum_count(path, df_sql, df_nations):
     title = 'Cumulative burnt area in EU countries'
     png_name = '6c_weekly_evolution.png'
     ylabel = 'Area (ha)'
-    unlabeled_graphs(path, df_area_2020, title, png_name, ylabel)
+    unlabeled_graphs(df_area_2020, title, png_name, ylabel)
 
     # Cumulative fire count in EU, weekly evolution and comparison with historical data
     df_count_2020 = pd.DataFrame(
@@ -286,4 +285,13 @@ def sum_count(path, df_sql, df_nations):
     title = 'Cumulative number of fires in EU countries'
     png_name = '6d_weekly_evolution.png'
     ylabel = 'Fires count'
-    unlabeled_graphs(path, df_count_2020, title, png_name, ylabel)
+    unlabeled_graphs(df_count_2020, title, png_name, ylabel)
+
+
+def main(df_sql, df_nations):
+    sum_count(df_sql, df_nations)
+    return 0
+
+
+if __name__ == '__main__':
+    main()

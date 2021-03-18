@@ -43,7 +43,7 @@ def db_connection(table_name, use='r', statement=''):
 		# print("dataframe df_sql from ba_oracle_export_year successfully downloaded")
 		global gdf_sql
 		print('Downloading the geodataframe from {} \n'.format(table_name))
-		gdf_sql = gpd.read_postgis('select * {}'.format(table_name), con=engine)
+		gdf_sql = gpd.read_postgis('select * from {}'.format(table_name), con=engine)
 		print("geodataframe gdf_sql from ba_oracle_export_year successfully downloaded")
 		# global gdf_ba
 		# gdf_ba = gpd.read_postgis('select * from gw_burntarea_effis.ba_year', con=engine)
@@ -80,12 +80,32 @@ def db_connection(table_name, use='r', statement=''):
 									  'and clc.natura2k is not null;', con=engine)
 		print('Generating nat2k by country stats\n')
 		nat2k_by_country = pd.read_sql_query('SELECT t."COUNTRY", sum(t."AREA_HA"*t."PERCNA2K"), count(t."PERCNA2K")' 
-											 'FROM gw_burntarea_effis.ba_oracle_compat_year as t'
-											 'where t."AREA_HA">=30 and t."PERCNA2K"!=0'
-											 'group by t."COUNTRY" order by t."COUNTRY" ')
-		nat2k_areas = pd.read_sql_query('select t."ms", sum(t."area_ha") from rst.nat2000_end2010_mena as t'
-										'group by t."ms"'
-										'order by t."ms"')
+											 'FROM gw_burntarea_effis.ba_oracle_export_year as t '
+											 'where t."AREA_HA">=30 and t."PERCNA2K"!=0 '
+											 'group by t."COUNTRY" order by t."COUNTRY" ', con=engine)
+		nat2k_areas = pd.read_sql_query('select t."ms", sum(t."area_ha") from rst.nat2000_end2010_mena as t '
+										'group by t."ms" '
+										'order by t."ms"', con=engine)
+		df_nat2k_countries = pd.read_sql_query('SELECT t."COUNTRY", sum(t."AREA_HA"*t."PERCNA2K")/100 as area, count(t."PERCNA2K") '
+												   'FROM gw_burntarea_effis.ba_oracle_compat_year as t '
+												   'where t."AREA_HA">=30 and t."PERCNA2K"!=0 '
+												   'group by t."COUNTRY" order by t."COUNTRY"',
+					  con=engine)
+		df_nat2k_sort_countries = pd.read_sql_query('SELECT ba."COUNTRY" as country, t."sitecode", '
+													't."sitename", t."sitetype", (ba."AREA_HA"*ba."PERCNA2K")/100 as area_ha '
+													'FROM rst.nat2000_end2010_mena as t '
+													'JOIN gw_burntarea_effis.ba_oracle_compat_year as ba '
+													'ON ST_Contains(t."geom", ba."geom") '
+													'where ba."AREA_HA">=30 and ba."PERCNA2K"!=0 order by country ASC',
+													con=engine)
+		df_nat2k_sort_area = pd.read_sql_query('SELECT ba."COUNTRY" as country, t."sitecode", t."sitename", '
+											   't."sitetype", (ba."AREA_HA"*ba."PERCNA2K")/100 as area_ha '
+											   'FROM rst.nat2000_end2010_mena as t '
+											   'JOIN gw_burntarea_effis.ba_oracle_compat_year as ba '
+											   'ON ST_Contains(t."geom", ba."geom") '
+											   'where ba."AREA_HA">=30 and ba."PERCNA2K"!=0 order by area_ha DESC',
+											   con=engine)
+
 	except (Exception, psycopg2.Error) as error:
 		print("Error while connecting to PostgreSQL", error)
 	finally:
@@ -95,7 +115,8 @@ def db_connection(table_name, use='r', statement=''):
 			connection.close()
 			print("PostgreSQL connection now closed")
 	if use == 'r':
-		return df_sql, gdf_sql, nat2k_year, nat2kweek, tab_nations, nat2k_by_country, nat2k_areas
+		return df_sql, gdf_sql, nat2k_year, nat2kweek, tab_nations, nat2k_by_country, nat2k_areas, df_nat2k_countries\
+			, df_nat2k_sort_countries, df_nat2k_sort_area
 	else:
 		print('Ahia!')
 	# return gdf_evo

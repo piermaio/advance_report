@@ -99,15 +99,14 @@ def db_connection(table_name, use='r', statement=''):
 	# return gdf_evo
 
 
-def main(root):
-	os.chdir(root)
+def main(df_nat2k_countries):
 	table_name = 'gw_burntarea_effis.ba_oracle_compat_year'
-	df_nat2k_countries = db_connection(table_name)
+	# df_nat2k_countries = db_connection(table_name)
 	df_nat2k_countries = df_nat2k_countries.set_index('COUNTRY')
 	df_2kareas = pd.read_csv('C:\\Users\piermaio\Documents\gisdata\jrc\BAmapping\\Nat2kMena\\_AREA_NATURA2K_per_country.csv')
 	df_2kareas = df_2kareas.set_index('CNTR_ID')
 	df_nat2k_countries = df_nat2k_countries.merge(df_2kareas, how='inner', left_index=True, right_index=True)
-	print(df_nat2k_countries.columns)
+	# print(df_nat2k_countries.columns)
 	df_nat2k_countries['% of Nat2kArea'] = df_nat2k_countries['area']/df_nat2k_countries['AreaHA']*100
 	df_nat2k_countries = df_nat2k_countries.rename(columns={"area": "Area(ha)", "count":"Number of fires"})
 	df_nat2k_countries = df_nat2k_countries.drop("AreaHA", axis=1)

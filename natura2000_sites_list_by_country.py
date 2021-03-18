@@ -75,10 +75,8 @@ def db_connection(table_name='', use='r', statement=''):
 	else:
 		print('Ahia!')
 
-
-def main(root):
-	os.chdir(root)
-	df_nat2k_sort_countries, df_nat2k_sort_area = db_connection()
+def main(df_nat2k_sort_countries, df_nat2k_sort_area):
+	# df_nat2k_sort_countries, df_nat2k_sort_area = db_connection()
 	df_nat2k_sort_countries.to_csv('10a_NATURA_2000_sites_list_by_country.csv')
 	df_nat2k_sort_area.to_csv('10b_NATURA_2000_sites_list_by_desc_area.csv')
 

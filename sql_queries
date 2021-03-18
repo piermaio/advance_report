@@ -37,7 +37,7 @@ sum(t."AREA_HA"*t."PERCNA2K"/100*t."TRANSIT"/100) as TransitionalVeget,
 sum(t."AREA_HA"*t."PERCNA2K"/100*t."OTHERNATLC"/100) as OtherNaturalLand,
 sum(t."AREA_HA"*t."PERCNA2K"/100*t."AGRIAREAS"/100) as Agriculture,
 sum(t."AREA_HA"*t."PERCNA2K"/100*t."ARTIFSURF"/100) as ArtificialSurfaces,
-sum(t."AREA_HA"*t."PERCNA2K"/100*t."OTHERLC"/100) as OtherLandCover,
+sum(t."AREA_HA"*t."PERCNA2K"/100*t."OTHERLC"/100) as OtherLandCover
 FROM gw_burntarea_effis.ba_oracle_compat_year as t
 where t."AREA_HA">=30 and t."PERCNA2K"!=0
 group by t."COUNTRY" order by t."COUNTRY"
@@ -60,3 +60,43 @@ FROM rst.nat2000_end2010_mena as t
 JOIN gw_burntarea_effis.ba_oracle_compat_year as ba
 ON ST_Contains(t."geom", ba."geom")
 where ba."AREA_HA">=30 and ba."PERCNA2K"!=0
+
+
+
+-- INtersection BA-Nat2k, landcover
+-- il risultato sono pixel, vanno multiplicati per 250*250/10000 (=6.25) se li vuoi in ettari
+
+select
+    stats."COUNTRY",
+--    (sum(case when value > 0 and value < 12 then count else 0 end)*6.25)::int as artificial,
+--    (sum(case when value > 11 and value < 23 then count else 0 end)*6.25)::int as agriculture,
+--    (sum(case when value = 23 then count else 0 end)*6.25)::int as broadleaved_forest,
+--    (sum(case when value = 24 then count else 0 end)*6.25)::int as coniferous_forest,
+--    (sum(case when value = 25 then count else 0 end)*6.25)::int as mixed_forest,
+--    (sum(case when value = 28 then count else 0 end)*6.25)::int as sclerophillous_vegetation,
+--    (sum(case when value = 29 then count else 0 end)*6.25)::int as transitional_vegetation,
+--    (sum(case when value = 26 or value = 27 or (value > 29 and value < 40) then count else 0 end)*6.25)::int as other_natural,
+--    (sum(case when value > 39 then count else 0 end)*6.25)::int as other
+    (sum(case when value > 0 and value < 12 then count else 0 end))::int as artificial,
+    (sum(case when value > 11 and value < 23 then count else 0 end))::int as agriculture,
+    (sum(case when value = 23 then count else 0 end))::int as broadleaved_forest,
+    (sum(case when value = 24 then count else 0 end))::int as coniferous_forest,
+    (sum(case when value = 25 then count else 0 end))::int as mixed_forest,
+    (sum(case when value = 28 then count else 0 end))::int as sclerophillous_vegetation,
+    (sum(case when value = 29 then count else 0 end))::int as transitional_vegetation,
+    (sum(case when value = 26 or value = 27 or (value > 29 and value < 40) then count else 0 end))::int as other_natural,
+    (sum(case when value > 39 then count else 0 end))::int as other
+from (
+    with n2k_int as (
+    select ba.id, ba."COUNTRY", st_intersection(ba.geom, n2k.geom) as geom -- come mai non include in questa select le stats clc?
+        from gw_burntarea_effis.ba_oracle_export_year as ba --PM change with ba_final_year
+    left join gw_burntarea_effis.ba_stats_clc as stat on stat.ba_id=ba.id  -- perche' fa questo join sulle stats se poi non le include nella select
+    left join rst.nat2000_end2010_mena as n2k on st_intersects(ba.geom, n2k.geom)  -- st_intersects e' una funzione booleana, mentre st_intersection restituisce la geometria?
+    where stat.natura2k > 0
+    )
+    select * from n2k_int,
+    lateral public.gw_get_poligon_raster_stats(n2k_int.geom, 'rst.effis_corine') --lateral?
+) as stats
+group by stats."COUNTRY"
+
+

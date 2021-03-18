@@ -51,7 +51,7 @@ def db_connection(use='r', statement=''):
         if use =='r':
             # print('Downloading the dataframe from {} \n'.format(table_name))
             global df_nat2k_countries # table format excluding geoinformation
-            df_nat2k_countries = pd.read_sql_query('SELECT *'
+            df_nat2k_countries = gpd.read_postgis('SELECT *'
                                                    'FROM gw_burntarea_effis.ba_oracle_compat_year as t '
                                                    'where t."AREA_HA">=30 and t."PERCNA2K"!=0 ',
                       con=engine)
@@ -148,7 +148,8 @@ def main():
     root = 'C:/Users/piermaio/Documents/gisdata/jrc/advance_report/'
     corine_path = 'C:\\Users\\piermaio\\Documents\\gisdata\\jrc\\BAmapping\\Corine\\raster\\Corine_globcover_MA_TU_ukraine.tif'  # PM local path to the corine geotif
     gdf = db_connection()
-    corine_stats(root, gdf, corine_path)
+    # corine_stats(root, gdf, corine_path)
+    return 0
 
 
 
